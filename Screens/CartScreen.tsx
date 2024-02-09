@@ -13,9 +13,9 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../Store/Store';
 
 const CartScreen = () => {
-  useEffect(() => {
-    console.log(cartItems, 'cartItems');
-  }, []);
+  // useEffect(() => {
+  //   console.log(cartItems, 'cartItems');
+  // }, []);
 
   const cartItems = useSelector((state: RootState) => state.cart.items);
 
