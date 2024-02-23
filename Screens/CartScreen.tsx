@@ -64,18 +64,20 @@ const CartScreen = () => {
             </View>
           ))}
       </ScrollView>
-      <View style={styles.priceDetails}>
-        <Text style={styles.productPrice}>Total Price: ${totalPrice}</Text>
-        <Text style={styles.priceText}>
-          Total Discount: ${totalDiscount.toFixed(3)}
-        </Text>
-        <Text style={[styles.priceText, styles.amountPayable]}>
-          Amount Payable: ${(totalPrice - totalDiscount).toFixed(3)}
-        </Text>
-        <TouchableOpacity style={styles.placeOrderButton} onPress={placeOrder}>
-          <Text style={styles.placeOrderButtonText}>Checkout</Text>
-        </TouchableOpacity>
-      </View>
+      {cartItems.length !== 0 &&
+        <View style={styles.priceDetails}>
+          <Text style={styles.productPrice}>Total Price: ${totalPrice}</Text>
+          <Text style={styles.priceText}>
+            Total Discount: ${totalDiscount.toFixed(3)}
+          </Text>
+          <Text style={[styles.priceText, styles.amountPayable]}>
+            Amount Payable: ${(totalPrice - totalDiscount).toFixed(3)}
+          </Text>
+          <TouchableOpacity style={styles.placeOrderButton} onPress={placeOrder}>
+            <Text style={styles.placeOrderButtonText}>Checkout</Text>
+          </TouchableOpacity>
+        </View>
+      }
       <Text style={styles.bottomSpace}></Text>
     </SafeAreaView>
   );
