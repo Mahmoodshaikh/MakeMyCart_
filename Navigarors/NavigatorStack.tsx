@@ -65,12 +65,18 @@ const NavigatorStack = () => {
       <Stack.Screen
         name="LoginScreen"
         component={LoginScreen}
-        options={{ title: 'Login' }}
+        options={() => ({
+          title: 'Login',
+          headerLeft: () => '',
+        })}
       />
       <Stack.Screen
         name="RegistrationScreen"
         component={RegistrationScreen}
-        options={{ title: 'Registration' }}
+        options={{
+          title: 'Registration',
+          headerLeft: () => ''
+        }}
       />
       <Stack.Screen
         name="ProductDetailsScreen"
@@ -89,7 +95,7 @@ const NavigatorStack = () => {
         })}
       />
       <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
-      <Stack.Screen name="Logout" component={Logout} />
+      <Stack.Screen name="Logout" component={Logout}/>
       <Stack.Screen name="LocationScreen" component={LocationScreen} />
     </Stack.Navigator>
   );

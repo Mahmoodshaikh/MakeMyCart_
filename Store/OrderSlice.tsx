@@ -31,10 +31,8 @@ const orderSlice = createSlice({
   },
 });
 
-// Export actions and reducer
 export const { createOrder, updateOrderStatus } = orderSlice.actions;
 
 export default orderSlice.reducer;
 
-// Selector to get all orders
 export const selectOrders = (state: RootState) => state.order.orders;
