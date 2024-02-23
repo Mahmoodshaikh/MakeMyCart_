@@ -1,5 +1,4 @@
-/* eslint-disable react/no-unescaped-entities */
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   FlatList,
@@ -8,12 +7,16 @@ import {
   StyleSheet,
   Image,
   TouchableOpacity,
+  TextInput,
 } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { AllProductsDetails } from '../Store/ProductSlice';
 import { useNavigation } from '@react-navigation/native';
 import { addToCart, selectCartItems } from '../Store/CartSlice';
-import { starImgFilled, starImgCorner } from '../Src/APIs/productsAPI';
+
+import Stars from '../Components/Stars'
+import { userLogin } from '../Store/AuthSlice';
+
 
 interface Product {
   discountPercentage: number;
@@ -27,6 +30,7 @@ interface Product {
 }
 
 interface RootState {
+  selectedCategory: any;
   product: {
     isLoading: boolean;
     productsData: Product[];
@@ -40,9 +44,16 @@ const ProductsScreen: React.FC = () => {
   const { isLoading, productsData, error } = useSelector(
     (state: RootState) => state.product,
   );
+  const categoriesData = useSelector((state: RootState) => state.selectedCategory);
+  const { categoryData } = categoriesData;
+
   const cartItems = useSelector(selectCartItems);
   const [addedToCartItems, setAddedToCartItems] = useState<number[]>([]);
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchResults, setSearchResults] = useState<string>('');
+  const [searchClicked, setSearchClicked] = useState<boolean>(false);
 
+  const inputRef = useRef<TextInput>(null);
   useEffect(() => {
     dispatch(AllProductsDetails());
   }, [dispatch]);
@@ -52,12 +63,19 @@ const ProductsScreen: React.FC = () => {
     ProductTitle: string,
     productDescription: string,
     ProductImages: string,
+    ProductRating: string,
+    ProductDiscountPercentage: number,
+    ProductPrice: number,
   ) => {
+    console.log("ProductPrice ", ProductPrice)
     navigation.navigate('ProductDetailsScreen', {
       productId,
       ProductTitle,
       productDescription,
       ProductImages,
+      ProductRating,
+      ProductDiscountPercentage,
+      ProductPrice,
     });
   };
 
@@ -84,6 +102,15 @@ const ProductsScreen: React.FC = () => {
     setAddedToCartItems([...addedToCartItems, productId]);
   };
 
+  const handleSearch = () => {
+    setSearchClicked(true)
+    inputRef.current?.blur(); 
+    fetch(`https://dummyjson.com/products/search?q=${searchQuery}`)
+      .then(res => res.json())
+      .then(data => setSearchResults(data))
+      .catch(error => console.error('Error searching products:', error));
+  };
+
   if (isLoading) {
     return (
       <View style={styles.container}>
@@ -99,86 +126,103 @@ const ProductsScreen: React.FC = () => {
       </View>
     );
   }
-
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={productsData}
-        keyExtractor={item => item.id.toString()}
-        renderItem={({ item }) => (
+    <>
+      <View style={styles.container}>
+        <View style={styles.searchContainer}>
+          <TextInput
+            ref={inputRef}
+            style={styles.searchInput}
+            placeholder="Search Products"
+            onChangeText={setSearchQuery}
+            value={searchQuery}
+          />
           <TouchableOpacity
-            onPress={() =>
-              handleProductPress(
-                item.id,
-                item.title,
-                item.description,
-                item.images,
-              )
-            }>
-            <View style={styles.productItem}>
-              <Image
-                source={{ uri: item.thumbnail }}
-                style={styles.productImage}
-              />
-              <View style={styles.productContainer}>
-                <Text style={styles.productName}>{item.title}</Text>
-              </View>
-              <Text style={styles.productDescription}>{item.description}</Text>
-              <Text style={styles.productName}>
-                Price: ${item.price}{' '}
-                <Text style={styles.strikeThroughtextStyle}>
-                  $
-                  {Math.floor(
-                    item.price + (item.price * item.discountPercentage) / 100,
-                  )}
-                </Text>{' '}
-                <Text style={styles.DiscountPercentage}>
-                  {item.discountPercentage}% off
+            style={styles.searchButton}
+            onPress={handleSearch}
+          >
+            <Text style={styles.searchButtonText} onPress={handleSearch}>Search</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.scrollView}>
+          <FlatList
+            data={searchClicked ? searchResults?.products : categoryData?.products}
+            keyExtractor={item => item.id.toString()}
+            ListEmptyComponent={() => (
+              <View style={styles.emptyListContainer}>
+                <Text style={styles.emptyListText}>
+                  {searchClicked
+                    ? 'No products found for your search.'
+                    : 'No products available.'}
                 </Text>
-              </Text>
-              <View style={styles.ratingContainer}>
-                <Text style={styles.productRating}>Rating: {item.rating}</Text>
-                {[1, 2, 3, 4, 5].map((_, index) => (
-                  <Image
-                    key={index}
-                    style={styles.starImage}
-                    source={
-                      item.rating >= 4.5
-                        ? { uri: starImgFilled }
-                        : index < Math.floor(item.rating)
-                          ? { uri: starImgFilled }
-                          : { uri: starImgCorner }
-                    }
-                  />
-                ))}
               </View>
+            )}
+            renderItem={({ item }) => (
               <TouchableOpacity
                 onPress={() =>
-                  addToCartHandler(
+                  handleProductPress(
                     item.id,
                     item.title,
                     item.description,
                     item.images,
-                    item.price,
-                    item.discountPercentage,
                     item.rating,
+                    item.discountPercentage,
+                    item.price,
                   )
-                }
-                style={styles.addToCartButton}
-                disabled={addedToCartItems.includes(item.id)}>
-                {addedToCartItems.includes(item.id) ? (
-                  <Text style={styles.addedToCartButtonText}>
-                    Added to Cart
+                }>
+                <View style={styles.productItem}>
+                  <Image
+                    source={{ uri: item.thumbnail }}
+                    style={styles.productImage}
+                  />
+                  <View style={styles.productContainer}>
+                    <Text style={styles.productName}>{item.title}</Text>
+                  </View>
+                  <Text style={styles.productDescription}>{item.description}</Text>
+                  <Text style={styles.productName}>
+                    Price: ${item.price}{' '}
+                    <Text style={styles.strikeThroughtextStyle}>
+                      $
+                      {Math.floor(
+                        item.price + (item.price * item.discountPercentage) / 100,
+                      )}
+                    </Text>{' '}
+                    <Text style={styles.DiscountPercentage}>
+                      {item.discountPercentage}% off
+                    </Text>
                   </Text>
-                ) : (
-                  <Text style={styles.addToCartButtonText}>Add to Cart</Text>
-                )}
+                  <Stars rating={item.rating} />
+                  <TouchableOpacity
+                    onPress={() =>
+                      addToCartHandler(
+                        item.id,
+                        item.title,
+                        item.description,
+                        item.images,
+                        item.price,
+                        item.discountPercentage,
+                        item.rating,
+                      )
+                    }
+                    style={styles.addToCartButton}
+                    disabled={addedToCartItems.includes(item.id)}>
+                    {addedToCartItems.includes(item.id) ? (
+                      <Text style={styles.addedToCartButtonText}>
+                        Added to Cart
+                      </Text>
+                    ) : (
+                      <Text style={styles.addToCartButtonText}>Add to Cart</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
               </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        )}
-      />
-    </View>
+            )}
+          />
+        </View>
+      </View>
+      <Text style={styles.bottomSpace}></Text>
+    </>
+
   );
 };
 
@@ -189,13 +233,48 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F1E9FF',
   },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 0,
+    marginTop: 80,
+    borderRadius: 5,
+    padding: 20
+  },
+  searchInput: {
+    borderWidth: 1,
+    borderColor: '#FC6736',
+    borderRadius: 5,
+    padding: 10,
+    marginRight: 10,
+    flex: 1,
+  },
+  searchButton: {
+    backgroundColor: '#FC6736',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  searchButtonText: {
+    fontSize: 18,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+  },
+  scrollView: {
+
+  },
   productItem: {
     marginBottom: 20,
     marginLeft: 10,
-    backgroundColor: '#6962AD',
+    backgroundColor: '#ECF8F9',
     padding: 20,
-    borderRadius: 10,
     width: '96%',
+    borderWidth: 1,
+    borderColor: '#FC6736',
+    borderRadius: 5,
+
   },
   productImage: {
     width: '100%',
@@ -207,7 +286,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginTop: 10,
-    color: '#ffffff',
+    color: '#000000',
   },
   productContainer: {
     flexDirection: 'column',
@@ -217,31 +296,33 @@ const styles = StyleSheet.create({
   strikeThroughtextStyle: {
     textDecorationLine: 'line-through',
     color: '#C3ACD0',
+    fontSize: 20,
+    marginBottom: 10,
+    fontWeight: 'bold',
   },
   DiscountPercentage: {
-    color: '#C2D9FF',
+    color: '#416D19',
+    fontSize: 20,
+    marginBottom: 10,
+    fontWeight: 'bold',
   },
   ratingContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 1,
   },
-  starImage: {
-    width: '8%',
-    height: '118%',
-    marginLeft: 4,
-  },
+
   productRating: {
     fontSize: 18,
     marginLeft: 5,
-    color: '#ffffff',
+    color: '#000000',
   },
   productDescription: {
     fontSize: 16,
-    color: '#ffffff',
+    color: '#000000',
   },
   addToCartButton: {
-    backgroundColor: '#362497',
+    backgroundColor: '#FC6736',
     marginTop: 10,
     paddingVertical: 10,
     paddingHorizontal: 20,
@@ -258,6 +339,18 @@ const styles = StyleSheet.create({
     color: '#888888',
     fontWeight: 'bold',
   },
+  emptyListContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyListText: {
+    fontSize: 18,
+    color: '#888',
+  },
+  bottomSpace: {
+    marginBottom: 60,
+  }
 });
 
 export default ProductsScreen;

@@ -26,10 +26,13 @@ export const cartSlice = createSlice({
     addToCart: (state, action: PayloadAction<CartItem>) => {
       state.items.push(action.payload);
     },
+    clearCart: (state) => {
+      state.items = []; 
+    },
   },
 });
 
-export const { addToCart } = cartSlice.actions;
+export const { addToCart, clearCart } = cartSlice.actions;
 
 export const selectCartItems = (state: RootState) => state.cart.items;
 

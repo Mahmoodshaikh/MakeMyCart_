@@ -1,1 +1,1 @@
-export const cartLogo = "https://github.com/Mahmoodshaikh/CV/blob/V-1.0/cartLogo.png?raw=true"
+export const cartLogo = "https://github.com/Mahmoodshaikh/CV/blob/V-1.0/shopping_cart-removebg-preview.png?raw=true"

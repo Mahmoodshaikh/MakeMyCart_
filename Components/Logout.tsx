@@ -19,7 +19,7 @@ const Logout = () => {
 const styles = StyleSheet.create({
   logoutButton: {
     padding: 7,
-    backgroundColor: '#4E4E6A', 
+    backgroundColor: '#4E4E6A',
     borderRadius: 12,
   },
   logoutButtonText: {

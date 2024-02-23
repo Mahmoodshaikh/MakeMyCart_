@@ -1,0 +1,1 @@
+export const genieLogo = 'https://github.com/Mahmoodshaikh/CV/blob/V-1.0/genielogo.png?raw=true'

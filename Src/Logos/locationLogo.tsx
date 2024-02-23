@@ -1,0 +1,1 @@
+export const locationLogo = "https://github.com/Mahmoodshaikh/CV/blob/V-1.0/pngtree-red-location-icon-removebg-preview.png?raw=true"
