@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "NativeApp.app"
-               BlueprintName = "NativeApp"
-               ReferencedContainer = "container:NativeApp.xcodeproj">
+               BuildableName = "Genie.app"
+               BlueprintName = "Genie"
+               ReferencedContainer = "container:Genie.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -35,7 +35,7 @@
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
                BuildableName = "NativeAppTests.xctest"
                BlueprintName = "NativeAppTests"
-               ReferencedContainer = "container:NativeApp.xcodeproj">
+               ReferencedContainer = "container:Genie.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "NativeApp.app"
-            BlueprintName = "NativeApp"
-            ReferencedContainer = "container:NativeApp.xcodeproj">
+            BuildableName = "Genie.app"
+            BlueprintName = "Genie"
+            ReferencedContainer = "container:Genie.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "NativeApp.app"
-            BlueprintName = "NativeApp"
-            ReferencedContainer = "container:NativeApp.xcodeproj">
+            BuildableName = "Genie.app"
+            BlueprintName = "Genie"
+            ReferencedContainer = "container:Genie.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

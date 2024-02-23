@@ -34,7 +34,7 @@ export const AllProductsDetails = createAsyncThunk(
   'product/allproducts',
   async () => {
     try {
-      const response = await axios.get(DUMMY_JSON_API);
+      const response = await DUMMY_JSON_API.get('/products');
       return response.data;
     } catch (error) {
       console.error('Error fetching products:', error);

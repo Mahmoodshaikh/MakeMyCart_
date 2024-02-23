@@ -13,18 +13,22 @@ const CartIcon = () => {
   };
 
   return (
-    <TouchableOpacity onPress={handleCartPress}>
+    <TouchableOpacity onPress={handleCartPress} style={styles.container}>
       <Image source={{ uri: cartLogo }} style={styles.cartIcon} />
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    alignItems: 'center',
+    padding: 2,
+  },
   cartIcon: {
-    width: 38,
-    height: 44,
-    resizeMode: 'contain',
-    padding: 11,
+    width: 34,
+    height: 32,
+    resizeMode: 'center',
+    padding: 1,
   },
 });
 

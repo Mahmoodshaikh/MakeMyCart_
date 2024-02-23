@@ -1,9 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable react/no-unescaped-entities */
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+import GenieLogo from '../Components/GenieLogo';
 
 const LoginScreen = () => {
   const [username, setUsername] = useState('');
@@ -23,7 +22,7 @@ const LoginScreen = () => {
 
       if (storedUsername === username && storedPassword === password) {
         console.log('Login successful!');
-        navigation.navigate("ProductsScreen");
+        navigation.navigate("HomeScreen");
       } else {
         showAlert('Invalid username or password');
       }
@@ -32,6 +31,7 @@ const LoginScreen = () => {
       showAlert('Error occurred while logging in');
     }
   };
+
   const showAlert = (message: string | undefined) => {
     Alert.alert('Alert', message, [{ text: 'OK' }]);
   };
@@ -42,6 +42,7 @@ const LoginScreen = () => {
 
   return (
     <View style={styles.container}>
+      <GenieLogo />
       <Text style={styles.title}>Hi user, please Log in</Text>
       <TextInput
         style={styles.input}
@@ -66,24 +67,29 @@ const LoginScreen = () => {
   );
 };
 
+const theme = {
+  primaryColor: '#F1E9FF',
+  secondaryColor: '#FC6736',
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F1E9FF',
+    backgroundColor: theme.primaryColor,
   },
   title: {
-    fontSize: 36,
+    fontSize: 24,
     marginBottom: 50,
     fontFamily: 'Billabong',
-    color: '#8A2BE2',
+    color: theme.secondaryColor,
   },
   input: {
     width: '80%',
     height: 50,
     borderWidth: 1,
-    borderColor: '#A98CFD',
+    borderColor: theme.secondaryColor,
     borderRadius: 5,
     marginBottom: 20,
     paddingLeft: 10,
@@ -91,7 +97,7 @@ const styles = StyleSheet.create({
   button: {
     width: '80%',
     height: 50,
-    backgroundColor: '#8A2BE2',
+    backgroundColor: theme.secondaryColor,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 5,
@@ -103,7 +109,7 @@ const styles = StyleSheet.create({
   },
   registerText: {
     marginTop: 10,
-    color: '#8A2BE2',
+    color: theme.secondaryColor,
     textDecorationLine: 'underline',
   },
 });
