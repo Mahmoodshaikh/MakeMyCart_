@@ -3,6 +3,7 @@ import { TouchableOpacity, Image, StyleSheet, Modal, View, Text, TouchableWithou
 import { useNavigation } from '@react-navigation/native';
 import SavedProfileIcon from '../Components/SavedProfileIcon';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Alert } from 'react-native';
 
 const ProfileIcon = () => {
     const navigation = useNavigation();
@@ -36,10 +37,10 @@ const ProfileIcon = () => {
         setIsModalOpen(false);
     };
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
         setIsModalOpen(false);
+        await clearAllData();
         navigation.navigate('LoginScreen');
-        saveProfilePicToStorage('')
     };
     const handleProfileSet = () => {
         setIsModalOpen(false);
@@ -52,11 +53,23 @@ const ProfileIcon = () => {
         navigation.navigate('MyOrdersScreen');
     };
 
-    const saveProfilePicToStorage = async (profilePic) => {
+    const saveProfilePicToStorage = async (profilePic: string) => {
         try {
             await AsyncStorage.setItem('profilePic', profilePic);
         } catch (error) {
             console.error('Error saving profile picture to storage:', error);
+        }
+    };
+
+    const clearAllData = async () => {
+        try {
+            const keys = await AsyncStorage.getAllKeys();
+            const keysToRemove = keys.filter(key => key === 'orders' || key === 'cartItemsAsyncStore' || key === 'profilePic');
+            await AsyncStorage.multiRemove(keysToRemove);
+            console.log('Success', 'Selected data removed successfully');
+        } catch (error) {
+            console.error('Error clearing data from AsyncStorage:', error);
+            Alert.alert('Error', 'An error occurred while clearing data. Please try again later.');
         }
     };
 

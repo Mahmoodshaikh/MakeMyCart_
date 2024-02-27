@@ -25,16 +25,16 @@ const LocationIcon = () => {
             });
     };
 
-    // const handleCartPress = () => {
-    //     console.log("Location Screen 3")
-    //     navigation.navigate('LocationScreen');
-    // };
+    const handleCartPress = () => {
+        console.log("Location Screen 3")
+        navigation.navigate('LocationScreen');
+    };
 
     return (
         <View style={styles.container}>
-            <View>
+            <TouchableOpacity onPress={handleCartPress}>
                 <Image source={{ uri: locationLogo }} style={styles.locationIcon} />
-            </View>
+            </TouchableOpacity>
             <Text style={styles.location}>{location || 'Fetching location...'}</Text>
         </View>
     );

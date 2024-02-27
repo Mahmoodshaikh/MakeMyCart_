@@ -4,7 +4,7 @@ import { RootState } from './store';
 const orderStatuses = ['Delivered', 'Pending', 'Canceled'];
 
 interface OrderState {
-  orders: { orderId: string; items: any[]; status: string }[];
+  orders: { orderId: string; items: any[]; status: string; date: string; totalPrice: number }[];
 }
 
 const initialState: OrderState = {
@@ -15,11 +15,12 @@ const orderSlice = createSlice({
   name: 'order',
   initialState,
   reducers: {
-    createOrder(state, action: PayloadAction<{ orderId: string; items: any[] }>) {
-      const { orderId, items } = action.payload;
+    createOrder(state, action: PayloadAction<{ orderId: string; items: any[]; totalPrice: number }>) {
+      const { orderId, items, totalPrice } = action.payload;
       const randomStatusIndex = Math.floor(Math.random() * orderStatuses.length);
       const randomStatus = orderStatuses[randomStatusIndex];
-      state.orders.push({ orderId, items, status: randomStatus });
+      const date = new Date().toLocaleDateString(); 
+      state.orders.push({ orderId, items, status: randomStatus, date, totalPrice });
     },
     updateOrderStatus(state, action: PayloadAction<{ orderId: string; status: string }>) {
       const { orderId, status } = action.payload;

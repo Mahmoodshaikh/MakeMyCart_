@@ -1,37 +1,65 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, FlatList, SafeAreaView } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../Store/Store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const MyOrdersScreen = () => {
   const orders = useSelector((state: RootState) => state.order.orders);
+  const [ordersFromAsyncStorage, setOrdersFromAsyncStorage] = useState([]);
 
-  const getOrderItemStyle = (status: string) => {
+  useEffect(() => {
+    const fetchOrders = async () => {
+      try {
+        const storedOrders = await AsyncStorage.getItem('orders');
+        if (storedOrders !== null) {
+          setOrdersFromAsyncStorage(JSON.parse(storedOrders));
+        }
+      } catch (error) {
+        console.error('Error fetching orders from AsyncStorage:', error);
+      }
+    };
+
+    fetchOrders();
+  }, []);
+
+  console.log("orders", orders)
+
+  const getOrderItemStyle = (status: string | undefined) => {
+    if (!status) {
+      return styles.orderText;
+    }
+
     switch (status.toLowerCase()) {
       case 'delivered':
-        return styles.delivered;
+        return { ...styles.orderText, backgroundColor: '#4CAF50' };
       case 'pending':
-        return styles.pending;
+        return { ...styles.orderText, backgroundColor: '#2196F3' };
       case 'canceled':
-        return styles.canceled;
+        return { ...styles.orderText, backgroundColor: '#F44336' };
       default:
-        return styles.default;
+        return styles.orderText;
     }
   };
 
-  // Render each order item
+
   const renderOrderItem = ({ item }: { item: any }) => (
-    <View style={[styles.orderItem, getOrderItemStyle(item.status)]}>
-      <Text style={styles.orderText}>Order ID: {item.orderId}</Text>
-      <Text style={styles.orderText}>Status: {item.status}</Text>
-      {/* Render other order details */}
+    <View style={styles.orderItem}>
+      <View style={styles.row}>
+        <Text style={[styles.orderText, styles.orderId]}>Order ID: {item.orderId}</Text>
+        <Text style={[styles.orderText, styles.totalAmount]}>Total Amount: ${item.totalPrice?.toFixed(2)}</Text>
+      </View>
+      <View style={styles.row}>
+        <Text style={styles.orderText}>Date: {item.date}</Text>
+        <Text style={[getOrderItemStyle(item.status), styles.status]}>Status: {item.status}</Text>
+      </View>
     </View>
   );
 
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
-        data={orders}
+        data={ordersFromAsyncStorage}
         renderItem={renderOrderItem}
         keyExtractor={(item) => item.orderId}
         contentContainerStyle={styles.flatListContainer}
@@ -54,20 +82,28 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     padding: 20,
     borderRadius: 10,
+    backgroundColor: '#EEEEEE',
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 5,
   },
   orderText: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 5,
   },
-  delivered: {
-    backgroundColor: '#4CAF50',
+  orderId: {
+    flex: 1,
   },
-  pending: {
-    backgroundColor: '#2196F3',
+  totalAmount: {
+    flex: 1,
+    textAlign: 'right',
   },
-  canceled: {
-    backgroundColor: '#F44336',
+  status: {
+    paddingHorizontal: 10,
+    borderRadius: 5,
+    color: '#FFFFFF',
   },
 });
 
