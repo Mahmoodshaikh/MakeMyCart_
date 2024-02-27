@@ -6,4 +6,7 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="28"
         tools:ignore="GoogleAppIndexingWarning"/>
+    <meta-data
+        android:name="com.google.android.gms.version"
+        android:name="@integer/google_play_services_version" />
 </manifest>

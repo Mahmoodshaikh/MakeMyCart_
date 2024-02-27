@@ -16,7 +16,7 @@ import { addToCart, selectCartItems } from '../Store/CartSlice';
 
 import Stars from '../Components/Stars'
 import { userLogin } from '../Store/AuthSlice';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface Product {
   discountPercentage: number;
@@ -52,6 +52,8 @@ const ProductsScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [searchResults, setSearchResults] = useState<string>('');
   const [searchClicked, setSearchClicked] = useState<boolean>(false);
+  const [cartItemsAsyncStore, setCartItemsAsyncStore] = useState([]);
+
 
   const inputRef = useRef<TextInput>(null);
   useEffect(() => {
@@ -79,7 +81,7 @@ const ProductsScreen: React.FC = () => {
     });
   };
 
-  const addToCartHandler = (
+  const addToCartHandler = async (
     productId: number,
     ProductTitle: string,
     productDescription: string,
@@ -100,11 +102,41 @@ const ProductsScreen: React.FC = () => {
       }),
     );
     setAddedToCartItems([...addedToCartItems, productId]);
+
+    try {
+      const updatedCartItems = [...cartItems, {
+        productId,
+        ProductTitle,
+        productDescription,
+        ProductImages,
+        ProductPrice,
+        ProductDiscountPercentage,
+        ProductRating,
+      }];
+      await AsyncStorage.setItem('cartItemsAsyncStore', JSON.stringify(updatedCartItems));
+    } catch (error) {
+      console.error('Error updating cart items in AsyncStorage:', error);
+    }
   };
+  const loadProfilePicFromStorage = async () => {
+    try {
+      const items = await AsyncStorage.getItem('cartItemsAsyncStore');
+      if (items !== null) {
+        setCartItemsAsyncStore(JSON.parse(items));
+      }
+    } catch (error) {
+      console.error('Error fetching cart items from AsyncStorage:', error);
+    }
+  };
+
+  useEffect(() => {
+    loadProfilePicFromStorage();
+    console.log("cartItemsAsyncStore---1--", cartItemsAsyncStore)
+  }, [cartItems]);
 
   const handleSearch = () => {
     setSearchClicked(true)
-    inputRef.current?.blur(); 
+    inputRef.current?.blur();
     fetch(`https://dummyjson.com/products/search?q=${searchQuery}`)
       .then(res => res.json())
       .then(data => setSearchResults(data))

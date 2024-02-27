@@ -1,46 +1,174 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, SafeAreaView } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../Store/Store';
-import { incrementQuantity, decrementQuantity } from '../Store/QuantitySlice';
+import { decrementQuantity, incrementQuantity } from '../Store/QuantitySlice';
 import { createOrder } from '../Store/OrderSlice';
 import { useNavigation } from '@react-navigation/native';
 import { clearCart } from '../Store/CartSlice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CartScreen = () => {
   const dispatch = useDispatch();
   const navigation = useNavigation();
   const cartItems = useSelector((state: RootState) => state.cart.items);
   const quantity = useSelector((state: RootState) => state.quantity);
+  const [cartItemsAsyncStore, setCartItemsAsyncStore] = useState([]);
 
-  const totalPrice = cartItems.reduce(
-    (total, item) => total + item.ProductPrice * (quantity[item.productId] || 1),
-    0,
-  );
-  const totalDiscount = cartItems.reduce(
-    (total, item) =>
-      total + (item.ProductPrice * item.ProductDiscountPercentage * (quantity[item.productId] || 1)) / 100,
-    0,
-  );
+
+  const [totalPriceAsyncStore, setTotalPriceAsyncStore] = useState<number>(0);
+  const [totalDiscountAsyncStore, setTotalDiscountAsyncStore] = useState<number>(0);
+  const [amountPayableAsyncStore, setAmountPayableAsyncStore] = useState<number>(0);
+
+  const [priceDetailsAsyncStore, setPriceDetailsAsyncStore] = useState<{
+    totalPrice: number;
+    totalDiscount: number;
+    amountPayable: number;
+  }>({
+    totalPrice: 0,
+    totalDiscount: 0,
+    amountPayable: 0,
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const items = await AsyncStorage.getItem('cartItemsAsyncStore');
+        console.log("items", items)
+        if (items !== null) {
+          setCartItemsAsyncStore(JSON.parse(items));
+        }
+
+        const priceDetails = await AsyncStorage.getItem('priceDetailsAsyncStore');
+        if (priceDetails !== null) {
+          const parsedPriceDetails = JSON.parse(priceDetails);
+          setTotalPriceAsyncStore(parsedPriceDetails.totalPrice);
+          setTotalDiscountAsyncStore(parsedPriceDetails.totalDiscount);
+          setAmountPayableAsyncStore(parsedPriceDetails.amountPayable);
+          setPriceDetailsAsyncStore(parsedPriceDetails);
+        }
+      } catch (error) {
+        console.error('Error fetching data from AsyncStorage:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    console.log("cartItemsAsyncStore", cartItemsAsyncStore)
+    const updatePriceDetails = () => {
+      const totalPrice = cartItems.reduce(
+        (total, item) => total + item.ProductPrice * (quantity[item.productId] || 1),
+        0,
+      );
+      const totalDiscount = cartItems.reduce(
+        (total, item) =>
+          total + (item.ProductPrice * item.ProductDiscountPercentage * (quantity[item.productId] || 1)) / 100,
+        0,
+      );
+      const amountPayable = totalPrice - totalDiscount;
+
+      setPriceDetailsAsyncStore({
+        totalPrice,
+        totalDiscount,
+        amountPayable,
+      });
+
+      setTotalPriceAsyncStore(totalPrice);
+      setTotalDiscountAsyncStore(totalDiscount);
+      setAmountPayableAsyncStore(amountPayable);
+    };
+
+    updatePriceDetails();
+  }, [cartItems, quantity]);
+
+  const updateCartItemsAsyncStore = async (updatedCartItems) => {
+    try {
+      await AsyncStorage.setItem('cartItemsAsyncStore', JSON.stringify(updatedCartItems));
+      setCartItemsAsyncStore(updatedCartItems);
+    } catch (error) {
+      console.error('Error updating cart items in AsyncStorage:', error);
+    }
+  };
+
+  const handleDecrement = async (productId: number) => {
+    dispatch(decrementQuantity(productId));
+    const updatedCartItems = cartItems.map(item => {
+      if (item.productId === productId) {
+        return { ...item, quantity: quantity[item.productId] || 1 };
+      }
+      return item;
+    });
+    await updateCartItemsAsyncStore(updatedCartItems);
+  };
+
+  const handleIncrement = async (productId: number) => {
+    dispatch(incrementQuantity(productId));
+    const updatedCartItems = cartItems.map(item => {
+      if (item.productId === productId) {
+        return { ...item, quantity: quantity[item.productId] || 1 };
+      }
+      return item;
+    });
+    await updateCartItemsAsyncStore(updatedCartItems);
+  };
+
 
   const generateRandomOrderId = () => {
     return Math.floor(Math.random() * 1000000).toString();
   };
 
-  const placeOrder = () => {
-    const orderId = generateRandomOrderId();
-    dispatch(createOrder({ orderId, cartItems }));
-    dispatch(clearCart());
-    navigation.navigate('HomeScreen')
+  const generateRandomStatus = () => {
+    const statuses = ['Delivered', 'Pending', 'Canceled'];
+    return statuses[Math.floor(Math.random() * statuses.length)];
+  };
+
+  const generateRandomDate = () => {
+    const startDate = new Date(2022, 0, 1).getTime();
+    const endDate = new Date().getTime();
+    const randomDate = new Date(startDate + Math.random() * (endDate - startDate));
+    return randomDate.toLocaleDateString();
+  };
+
+  const placeOrder = async () => {
+    try {
+      const orderId = generateRandomOrderId();
+      const randomStatus = generateRandomStatus();
+      const randomDate = generateRandomDate();
+      const totalPrice = cartItems.reduce((total, item) => total + (item.ProductPrice * (quantity[item.productId] || 1)), 0);
+
+      const order = {
+        orderId: orderId,
+        date: randomDate,
+        items: cartItems,
+        status: randomStatus,
+        totalPrice: totalPrice
+      };
+
+      dispatch(createOrder(order));
+      dispatch(clearCart());
+
+      const existingOrdersString = await AsyncStorage.getItem('orders');
+      const existingOrders = existingOrdersString ? JSON.parse(existingOrdersString) : [];
+      existingOrders.push(order);
+      await AsyncStorage.setItem('orders', JSON.stringify(existingOrders));
+
+      console.log('Order placed:', order);
+      // await AsyncStorage.removeItem('orders');
+      navigation.navigate('HomeScreen');
+    } catch (error) {
+      console.error('Error placing order:', error);
+    }
   };
 
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView}>
-        {cartItems.length === 0 ?
+        {cartItemsAsyncStore.length === 0 ?
           <Text style={[styles.title]}>Your Cart is <Text style={styles.empty}>Empty!</Text></Text>
-          : cartItems.map((item, index) => (
+          : cartItemsAsyncStore.map((item, index) => (
             <View key={index} style={styles.productItem}>
               <Image
                 source={{ uri: item.ProductImages.slice(-1).pop() }}
@@ -52,11 +180,11 @@ const CartScreen = () => {
                 <Text style={styles.productPrice}>Price: ${item.ProductPrice}</Text>
                 <View style={styles.quantityContainer}>
                   <Text style={styles.quantity}>Quantity: </Text>
-                  <TouchableOpacity onPress={() => dispatch(decrementQuantity(item.productId))}>
+                  <TouchableOpacity onPress={() => handleDecrement(item.productId)}>
                     <Text style={styles.quantityButton}>-</Text>
                   </TouchableOpacity>
-                  <Text style={styles.quantity}>{quantity[item.productId] || 1}</Text>
-                  <TouchableOpacity onPress={() => dispatch(incrementQuantity(item.productId))}>
+                  <Text style={styles.quantity}>{item.quantity || 1}</Text>
+                  <TouchableOpacity onPress={() => handleIncrement(item.productId)}>
                     <Text style={styles.quantityButton}>+</Text>
                   </TouchableOpacity>
                 </View>
@@ -64,14 +192,14 @@ const CartScreen = () => {
             </View>
           ))}
       </ScrollView>
-      {cartItems.length !== 0 &&
+      {cartItemsAsyncStore.length !== 0 &&
         <View style={styles.priceDetails}>
-          <Text style={styles.productPrice}>Total Price: ${totalPrice}</Text>
+          <Text style={styles.productPrice}>Total Price: ${totalPriceAsyncStore}</Text>
           <Text style={styles.priceText}>
-            Total Discount: ${totalDiscount.toFixed(3)}
+            Total Discount: ${totalDiscountAsyncStore.toFixed(3)}
           </Text>
           <Text style={[styles.priceText, styles.amountPayable]}>
-            Amount Payable: ${(totalPrice - totalDiscount).toFixed(3)}
+            Amount Payable: ${amountPayableAsyncStore.toFixed(3)}
           </Text>
           <TouchableOpacity style={styles.placeOrderButton} onPress={placeOrder}>
             <Text style={styles.placeOrderButtonText}>Checkout</Text>
@@ -100,7 +228,6 @@ const styles = StyleSheet.create({
     marginTop: 250,
     textAlign: 'center',
     padding: 20,
-
   },
   empty: {
     color: 'red',
