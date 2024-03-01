@@ -15,7 +15,7 @@ const CartScreen = () => {
   const quantity = useSelector((state: RootState) => state.quantity);
   const [cartItemsAsyncStore, setCartItemsAsyncStore] = useState([]);
 
-
+  console.log("id quantity1---", quantity)
   const [totalPriceAsyncStore, setTotalPriceAsyncStore] = useState<number>(0);
   const [totalDiscountAsyncStore, setTotalDiscountAsyncStore] = useState<number>(0);
   const [amountPayableAsyncStore, setAmountPayableAsyncStore] = useState<number>(0);
@@ -40,6 +40,7 @@ const CartScreen = () => {
         }
 
         const priceDetails = await AsyncStorage.getItem('priceDetailsAsyncStore');
+        console.log(priceDetails)
         if (priceDetails !== null) {
           const parsedPriceDetails = JSON.parse(priceDetails);
           setTotalPriceAsyncStore(parsedPriceDetails.totalPrice);
@@ -51,18 +52,45 @@ const CartScreen = () => {
         console.error('Error fetching data from AsyncStorage:', error);
       }
     };
+    const updatePriceDetails = () => {
+      const totalPrice = cartItemsAsyncStore.reduce(
+        (total, item) => total + item.ProductPrice * (quantity[item.productId] || 1),
+        0,
+      );
+      const totalDiscount = cartItemsAsyncStore.reduce(
+        (total, item) =>
+          total + (item.ProductPrice * item.ProductDiscountPercentage * (quantity[item.productId] || 1)) / 100,
+        0,
+      );
+      const amountPayable = totalPrice - totalDiscount;
 
-    fetchData();
+      setPriceDetailsAsyncStore({
+        totalPrice,
+        totalDiscount,
+        amountPayable,
+      });
+
+      setTotalPriceAsyncStore(totalPrice);
+      setTotalDiscountAsyncStore(totalDiscount);
+      setAmountPayableAsyncStore(amountPayable);
+    };
+    const cartItemsQty = async () => {
+      await updatePriceDetails();
+
+      await fetchData();
+
+    }
+    cartItemsQty()
   }, []);
 
   useEffect(() => {
     console.log("cartItemsAsyncStore", cartItemsAsyncStore)
     const updatePriceDetails = () => {
-      const totalPrice = cartItems.reduce(
+      const totalPrice = cartItemsAsyncStore.reduce(
         (total, item) => total + item.ProductPrice * (quantity[item.productId] || 1),
         0,
       );
-      const totalDiscount = cartItems.reduce(
+      const totalDiscount = cartItemsAsyncStore.reduce(
         (total, item) =>
           total + (item.ProductPrice * item.ProductDiscountPercentage * (quantity[item.productId] || 1)) / 100,
         0,
@@ -94,7 +122,7 @@ const CartScreen = () => {
 
   const handleDecrement = async (productId: number) => {
     dispatch(decrementQuantity(productId));
-    const updatedCartItems = cartItems.map(item => {
+    const updatedCartItems = cartItemsAsyncStore.map(item => {
       if (item.productId === productId) {
         return { ...item, quantity: quantity[item.productId] || 1 };
       }
@@ -105,7 +133,7 @@ const CartScreen = () => {
 
   const handleIncrement = async (productId: number) => {
     dispatch(incrementQuantity(productId));
-    const updatedCartItems = cartItems.map(item => {
+    const updatedCartItems = cartItemsAsyncStore.map(item => {
       if (item.productId === productId) {
         return { ...item, quantity: quantity[item.productId] || 1 };
       }
@@ -155,7 +183,7 @@ const CartScreen = () => {
       await AsyncStorage.setItem('orders', JSON.stringify(existingOrders));
 
       console.log('Order placed:', order);
-      // await AsyncStorage.removeItem('orders');
+      await AsyncStorage.removeItem('cartItemsAsyncStore');
       navigation.navigate('HomeScreen');
     } catch (error) {
       console.error('Error placing order:', error);
@@ -183,7 +211,7 @@ const CartScreen = () => {
                   <TouchableOpacity onPress={() => handleDecrement(item.productId)}>
                     <Text style={styles.quantityButton}>-</Text>
                   </TouchableOpacity>
-                  <Text style={styles.quantity}>{item.quantity || 1}</Text>
+                  <Text style={styles.quantity}>{quantity[item.productId] || 0}</Text>
                   <TouchableOpacity onPress={() => handleIncrement(item.productId)}>
                     <Text style={styles.quantityButton}>+</Text>
                   </TouchableOpacity>
@@ -193,18 +221,21 @@ const CartScreen = () => {
           ))}
       </ScrollView>
       {cartItemsAsyncStore.length !== 0 &&
-        <View style={styles.priceDetails}>
-          <Text style={styles.productPrice}>Total Price: ${totalPriceAsyncStore}</Text>
-          <Text style={styles.priceText}>
-            Total Discount: ${totalDiscountAsyncStore.toFixed(3)}
-          </Text>
-          <Text style={[styles.priceText, styles.amountPayable]}>
-            Amount Payable: ${amountPayableAsyncStore.toFixed(3)}
-          </Text>
+        <View style={styles.priceDetailsContainer}>
+          <View style={styles.priceDetails}>
+            <Text style={styles.productsPrice}>Total Price: ${totalPriceAsyncStore}</Text>
+            <Text style={styles.priceText}>
+              Total Discount: ${totalDiscountAsyncStore.toFixed(3)}
+            </Text>
+            <Text style={[styles.priceText, styles.amountPayable]}>
+              Amount Payable: ${amountPayableAsyncStore.toFixed(3)}
+            </Text>
+          </View>
           <TouchableOpacity style={styles.placeOrderButton} onPress={placeOrder}>
             <Text style={styles.placeOrderButtonText}>Checkout</Text>
           </TouchableOpacity>
         </View>
+
       }
       <Text style={styles.bottomSpace}></Text>
     </SafeAreaView>
@@ -286,35 +317,49 @@ const styles = StyleSheet.create({
     marginRight: 10,
     fontWeight: 'bold',
   },
-  priceDetails: {
-    backgroundColor: '#191919',
-    padding: 20,
-    borderRadius: 10,
+  priceDetailsContainer: {
+    flexDirection: 'row',
     marginTop: 20,
+    paddingHorizontal: 20,
+    alignItems: 'center',
+    backgroundColor: '#C5EBAA',
+
+  },
+  priceDetails: {
+    padding: 10,
+    borderRadius: 10,
+    marginRight: 10,
+  },
+  productsPrice: {
+    fontWeight: 'bold',
+    color: '#000000',
+    fontSize: 18,
+    marginBottom: 10,
   },
   priceText: {
+    color: '#000000',
+    fontSize: 16,
+    marginBottom: 8,
     fontWeight: 'bold',
-    color: '#FFFFFF',
-    fontSize: 18,
-    marginBottom: 5,
   },
   amountPayable: {
-    color: '#65B741',
-    fontSize: 19,
+    color: '#000000',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginTop: 8,
   },
   placeOrderButton: {
-    backgroundColor: '#BED754',
+    backgroundColor: '#EBF400',
     paddingVertical: 15,
+    paddingHorizontal: 20,
     borderRadius: 10,
     alignItems: 'center',
-    marginTop: 20,
   },
   placeOrderButtonText: {
     color: '#000000',
     fontSize: 18,
     fontWeight: 'bold',
-  },
-  bottomSpace: {
+  }, bottomSpace: {
     marginBottom: 10,
   }
 });

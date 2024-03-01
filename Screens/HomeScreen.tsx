@@ -6,10 +6,11 @@ import { fetchCategoryData } from '../Store/selectedCategorySlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RootState } from '../Store/Store';
 import ProductsScreen from './ProductsScreen';
+import { useNavigation } from '@react-navigation/native';
 
 const HomeScreen = () => {
   const dispatch = useDispatch();
-
+  const navigation = useNavigation();
   const { categories, isLoading, error } = useSelector((state) => state?.categories);
 
 
@@ -35,6 +36,10 @@ const HomeScreen = () => {
     dispatch(fetchCategoryData(category));
     setModalVisible(false);
     setCategory(category);
+  };
+  const onRequestCloseHandler = () => {
+    navigation.navigate('ProductsScreen')
+    setModalVisible(false);
   };
 
   if (isLoading) {
@@ -62,12 +67,10 @@ const HomeScreen = () => {
           animationType='slide'
           transparent={true}
           visible={modalVisible}
-          onRequestClose={() => {
-            setModalVisible(false);
-          }}>
+          onRequestClose={() =>onRequestCloseHandler()}>
           <TouchableOpacity
             style={styles.modalContainer}
-            onPress={() => setModalVisible(false)}
+            onPress={() => onRequestCloseHandler()}
             activeOpacity={1}>
             <View style={styles.modalContent}>
               <Text style={styles.welcomeText}>Welcome, {storedUsername1}!</Text>

@@ -13,7 +13,6 @@ import RegistrationScreen from '../Screens/RegistrationScreen';
 import HomeScreen from '../Screens/HomeScreen';
 import GenieLogo from '../Components/GenieLogo';
 import CategoryTitle from '../Components/CategoryTitle';
-import { selectedCategoryTitle } from '../Store/selectedCategorySlice';
 import MyOrdersScreen from '../Screens/MyOrdersScreen';
 import ProfileScreen from '../Screens/ProfileScreen';
 import ProfileIcon from '../Components/ProfileIcon';
@@ -22,12 +21,9 @@ import LocationScreen from '../Screens/LocationScreen';
 
 const NavigatorStack = () => {
   const Stack = createNativeStackNavigator();
-  const cartItems = useSelector(selectCartItems);
-  const category = useSelector(selectedCategoryTitle);
-
   return (
     <Stack.Navigator
-      initialRouteName="HomeScreen"
+      initialRouteName="LoginScreen"
       screenOptions={{
         headerStyle: { backgroundColor: '#F1E9FF' },
         headerTintColor: '#FC6736',
@@ -45,13 +41,11 @@ const NavigatorStack = () => {
               <ProfileIcon navigation={navigation} />
             </>
           ),
-          headerLeft: () => (
-            <>
-              <GenieLogo />
-            </>
-          ),
+          headerLeft: () => <GenieLogo />,
 
           headerTitle: () => <CategoryTitle />,
+          headerTintColor: '#F1E9FF',
+          headerBackImage: () => <></>,
         })}
       />
       <Stack.Screen
@@ -79,6 +73,26 @@ const NavigatorStack = () => {
         }}
       />
       <Stack.Screen
+        name="ProductsScreen"
+        component={ProductsScreen}
+        options={({ navigation }) => ({
+          title: 'Products',
+          headerRight: () => (
+            <>
+              <CartIcon />
+              <LocationIcon />
+              <ProfileIcon navigation={navigation} />
+            </>
+          ),
+          headerLeft: () => (
+            <GenieLogo />
+          ),
+          headerTitle: () => <CategoryTitle />,
+          headerTintColor: '#F1E9FF',
+          headerBackImage: () => <></>,
+        })}
+      />
+      <Stack.Screen
         name="ProductDetailsScreen"
         component={ProductDetailsScreen}
         options={() => ({
@@ -95,7 +109,7 @@ const NavigatorStack = () => {
         })}
       />
       <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
-      <Stack.Screen name="Logout" component={Logout}/>
+      <Stack.Screen name="Logout" component={Logout} />
       <Stack.Screen name="LocationScreen" component={LocationScreen} />
     </Stack.Navigator>
   );

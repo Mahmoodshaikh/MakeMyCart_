@@ -42,7 +42,6 @@ const MyOrdersScreen = () => {
     }
   };
 
-
   const renderOrderItem = ({ item }: { item: any }) => (
     <View style={styles.orderItem}>
       <View style={styles.row}>
@@ -58,12 +57,16 @@ const MyOrdersScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <FlatList
-        data={ordersFromAsyncStorage}
-        renderItem={renderOrderItem}
-        keyExtractor={(item) => item.orderId}
-        contentContainerStyle={styles.flatListContainer}
-      />
+      {ordersFromAsyncStorage.length === 0 ? (
+        <Text style={styles.noOrdersText}>No orders found</Text>
+      ) : (
+        <FlatList
+          data={ordersFromAsyncStorage}
+          renderItem={renderOrderItem}
+          keyExtractor={(item) => item.orderId}
+          contentContainerStyle={styles.flatListContainer}
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -104,6 +107,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     borderRadius: 5,
     color: '#FFFFFF',
+  },
+  noOrdersText: {
+    flex: 1,
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginTop: 250,
+    textAlign: 'center',
+    padding: 20,
   },
 });
 
