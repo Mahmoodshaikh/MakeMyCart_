@@ -185,7 +185,7 @@ const ProductsScreen: React.FC = () => {
                 <Text style={styles.emptyListText}>
                   {searchClicked
                     ? 'No products found for your search.'
-                    : 'No products available.'}
+                    : 'Please search for products.'}
                 </Text>
               </View>
             )}

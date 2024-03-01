@@ -12,7 +12,6 @@ const ProfileIcon = () => {
     const defaultProfilePic = 'https://github.com/Mahmoodshaikh/CV/blob/V-1.0/profile_avatar-removebg-preview.png?raw=true';
     const [profilePic, setProfilePic] = useState(defaultProfilePic);
 
-
     const loadProfilePicFromStorage = async () => {
         try {
             const storedProfilePic = await AsyncStorage.getItem('profilePic');
@@ -22,13 +21,14 @@ const ProfileIcon = () => {
         } catch (error) {
             console.error('Error loading profile picture from storage:', error);
         }
+        await AsyncStorage.setItem('isLoggedIn', 'true');
     };
 
-    //   useEffect(() => {
-    //     loadProfilePicFromStorage(); 
-    //   }, []);
 
     loadProfilePicFromStorage();
+
+
+
     const handlePress = () => {
         setIsModalOpen(true);
     };
@@ -40,8 +40,10 @@ const ProfileIcon = () => {
     const handleLogout = async () => {
         setIsModalOpen(false);
         await clearAllData();
+        await AsyncStorage.setItem('isLoggedIn', 'false');
         navigation.navigate('LoginScreen');
     };
+
     const handleProfileSet = () => {
         setIsModalOpen(false);
         console.log(isModalOpen, 'isModalOpen')

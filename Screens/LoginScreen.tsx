@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -8,6 +8,27 @@ const LoginScreen = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigation = useNavigation<any>();
+
+
+  useEffect(() => {
+    const checkLoginStatus = async () => {
+      try {
+        const isLoggedIn = await AsyncStorage.getItem('isLoggedIn');
+        console.log(!!isLoggedIn)
+        if (isLoggedIn === 'true') {
+          await AsyncStorage.setItem('isLoggedIn', 'false');
+          console.log('in', !!isLoggedIn)
+          navigation.navigate("HomeScreen");
+        } else {
+          console.log('Not loggedin');
+        }
+      } catch (error) {
+        console.log('Error: ', error);
+      }
+    };
+    checkLoginStatus();
+  }, []);
+
 
   const handleLogin = async () => {
     if (!username || !password) {
